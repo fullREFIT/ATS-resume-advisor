@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { ATSContextBlock } from "@/components/ATSContextBlock";
 import { LocalStorageDisclaimer } from "@/components/LocalStorageDisclaimer";
+import { ResumeUpload } from "@/components/ResumeUpload";
 import { loadSession, patchSession } from "@/lib/storage";
 import type { AtsVendor, Diagnosis } from "@/lib/types";
 
@@ -80,8 +81,9 @@ export function IntakeForm() {
 
       <div className="flex flex-col gap-2">
         <label htmlFor="resume" className="section-label">
-          Your resume (paste plain text)
+          Your resume (paste plain text or upload)
         </label>
+        <ResumeUpload onParsed={setResume} />
         <textarea
           id="resume"
           value={resume}
