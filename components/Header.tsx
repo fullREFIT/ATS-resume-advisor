@@ -29,14 +29,14 @@ export function Header() {
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="text-xs font-medium text-echo hover:text-carbon-core"
+              className="inline-flex min-h-11 items-center px-2 text-xs font-medium text-echo hover:text-carbon-core"
               aria-label="Bring your own API key"
             >
               {hasKey ? "Your key · BYOK" : "Use my own key"}
             </button>
             <Link
               href="/about"
-              className="text-sm font-medium text-forge-red hover:text-forge-red-hover"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-forge-red hover:text-forge-red-hover"
             >
               How it works
             </Link>
