@@ -25,7 +25,7 @@ export async function callClaude(opts: CallClaudeOptions): Promise<string> {
   const { apiKey, task, system, user, maxTokens } = opts;
   const client = getClient(apiKey);
   const max_tokens =
-    maxTokens ?? (task === "output" ? 2400 : task === "questions" ? 1200 : 1000);
+    maxTokens ?? (task === "output" ? 5000 : task === "questions" ? 1200 : 1200);
 
   const message = await client.messages.create({
     model: MODELS[task],
