@@ -22,3 +22,12 @@ The brief references `/Users/paul/dev-4/ai-resume-advisor/_reference/prototype.j
 
 ### 2026-05-11 — shadcn/ui scope
 Brief lists shadcn/ui as the styling system. Tailwind v4 shadcn integration is still maturing in some areas, and the components needed for v1 are simple enough (button, card, badge, textarea, dialog) that hand-rolled Tailwind components matching shadcn conventions are pragmatic. The brand specification is the load-bearing constraint, not the shadcn dependency. Components live in `components/ui/`.
+
+### 2026-05-11 — Fabrication guard retries capped at 1
+The brief permits "cap regeneration at 2 attempts" (i.e., 3 total tries). Worst-case timing on Vercel's 60s function limit (Hobby plan) made 3 attempts hit `FUNCTION_INVOCATION_TIMEOUT` because each output+guard cycle is ~22s with Sonnet 4.6. Capped at 1 retry (2 total attempts, max ~45s). Empirically the first pass usually clears the guard; retries cover edge cases. If a stricter guard policy is needed later, move the worker to Vercel's Pro plan and bump retries back to 2.
+
+### 2026-05-11 — Mobile QA via Playwright (not real iPhone Safari)
+The build environment can't open Safari on a physical iPhone SE or BrowserStack from a tool call. Mobile QA was performed via Playwright with the `iPhone SE` device emulation profile (320px viewport, iOS user agent). Verified: no horizontal scroll, no inputs under 16px (would trigger iOS auto-zoom), all primary CTAs ≥48px, all secondary buttons ≥44px. Screenshots captured at `/tmp/qa-home.png`, `/tmp/qa-about.png`, `/tmp/qa-diagnose.png`. Real-device verification is the user's to perform once before going to broader distribution — the layout primitives have been built to spec.
+
+### 2026-05-11 — Upstash rate limit NOT enforced in production
+The Vercel project has `ANTHROPIC_API_KEY`, `DEMO_DAILY_LIMIT`, and `ANTHROPIC_MONTHLY_BUDGET_USD` set. `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are NOT configured — `lib/ratelimit.ts` falls back to allow-all. **Action for Paul:** add the Upstash Redis integration to this Vercel project (Settings → Integrations → Upstash), which auto-populates both env vars; then redeploy. No code change required. Until then, every demo request consumes the demo Anthropic key without per-IP capping.
