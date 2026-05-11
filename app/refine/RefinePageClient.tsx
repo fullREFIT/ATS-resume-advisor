@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { InfoBlock } from "@/components/ui/InfoBlock";
+import { callApi } from "@/lib/api-fetch";
 import { loadSession, patchSession } from "@/lib/storage";
 import type {
   Question,
@@ -57,18 +58,19 @@ export function RefinePageClient() {
         question: q.question,
         answer: answers[q.id] ?? "",
       }));
-      const res = await fetch("/api/demo/output", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume, jd, intakeAnswers }),
+      const data = await callApi<
+        {
+          resume: string;
+          jd: string;
+          intakeAnswers: { question: string; answer: string }[];
+        },
+        { output?: TailoredOutput; guarded?: boolean }
+      >({
+        endpoint: "output",
+        body: { resume, jd, intakeAnswers },
       });
-      const data = (await res.json()) as {
-        output?: TailoredOutput;
-        guarded?: boolean;
-        error?: string;
-      };
-      if (!res.ok || !data.output) {
-        throw new Error(data.error ?? "Failed to generate output.");
+      if (!data.output) {
+        throw new Error("Failed to generate output.");
       }
       patchSession({ tailored: data.output });
       router.push("/result");

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { ATSContextBlock } from "@/components/ATSContextBlock";
 import { LocalStorageDisclaimer } from "@/components/LocalStorageDisclaimer";
 import { ResumeUpload } from "@/components/ResumeUpload";
+import { callApi } from "@/lib/api-fetch";
 import { loadSession, patchSession } from "@/lib/storage";
 import type { AtsVendor, Diagnosis } from "@/lib/types";
 
@@ -45,17 +46,15 @@ export function IntakeForm() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/demo/diagnose", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume, jd, atsVendor }),
+      const data = await callApi<
+        { resume: string; jd: string; atsVendor: AtsVendor },
+        { diagnosis?: Diagnosis }
+      >({
+        endpoint: "diagnose",
+        body: { resume, jd, atsVendor },
       });
-      const data = (await res.json()) as {
-        error?: string;
-        diagnosis?: Diagnosis;
-      };
-      if (!res.ok || !data.diagnosis) {
-        throw new Error(data.error ?? "Diagnosis failed.");
+      if (!data.diagnosis) {
+        throw new Error("Diagnosis failed.");
       }
       patchSession({
         resume,

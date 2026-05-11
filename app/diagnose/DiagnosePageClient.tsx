@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DiagnosisCard } from "@/components/DiagnosisCard";
 import { Button } from "@/components/ui/Button";
+import { callApi } from "@/lib/api-fetch";
 import { clearSession, loadSession, patchSession } from "@/lib/storage";
 import type { Diagnosis, QuestionsResponse } from "@/lib/types";
 
@@ -40,17 +41,15 @@ export function DiagnosePageClient() {
     setLoadingQuestions(true);
     setError(null);
     try {
-      const res = await fetch("/api/demo/questions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resume, jd, diagnosis }),
+      const data = await callApi<
+        { resume: string; jd: string; diagnosis: Diagnosis },
+        { questions?: QuestionsResponse }
+      >({
+        endpoint: "questions",
+        body: { resume, jd, diagnosis },
       });
-      const data = (await res.json()) as {
-        questions?: QuestionsResponse;
-        error?: string;
-      };
-      if (!res.ok || !data.questions) {
-        throw new Error(data.error ?? "Failed to generate questions.");
+      if (!data.questions) {
+        throw new Error("Failed to generate questions.");
       }
       patchSession({ questions: data.questions, answers: {} });
       router.push("/refine");
