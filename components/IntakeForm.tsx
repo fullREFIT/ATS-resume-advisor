@@ -8,23 +8,12 @@ import { LocalStorageDisclaimer } from "@/components/LocalStorageDisclaimer";
 import { ResumeUpload } from "@/components/ResumeUpload";
 import { callApi } from "@/lib/api-fetch";
 import { loadSession, patchSession } from "@/lib/storage";
-import type { AtsVendor, Diagnosis } from "@/lib/types";
-
-const ATS_VENDORS: AtsVendor[] = [
-  "Workday",
-  "Greenhouse",
-  "Lever",
-  "iCIMS",
-  "Taleo",
-  "SmartRecruiters",
-  "Don't know",
-];
+import type { Diagnosis } from "@/lib/types";
 
 export function IntakeForm() {
   const router = useRouter();
   const [resume, setResume] = useState("");
   const [jd, setJd] = useState("");
-  const [atsVendor, setAtsVendor] = useState<AtsVendor>("Don't know");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -33,7 +22,6 @@ export function IntakeForm() {
     const s = loadSession();
     setResume(s.resume);
     setJd(s.jd);
-    if (s.atsVendor) setAtsVendor(s.atsVendor);
     setHydrated(true);
   }, []);
 
@@ -47,11 +35,11 @@ export function IntakeForm() {
     setLoading(true);
     try {
       const data = await callApi<
-        { resume: string; jd: string; atsVendor: AtsVendor },
+        { resume: string; jd: string },
         { diagnosis?: Diagnosis }
       >({
         endpoint: "diagnose",
-        body: { resume, jd, atsVendor },
+        body: { resume, jd },
       });
       if (!data.diagnosis) {
         throw new Error("Diagnosis failed.");
@@ -59,7 +47,6 @@ export function IntakeForm() {
       patchSession({
         resume,
         jd,
-        atsVendor,
         diagnosis: data.diagnosis,
         answers: {},
         questions: undefined,
@@ -108,24 +95,6 @@ export function IntakeForm() {
           placeholder="Paste the full job description for the role you're targeting."
           className="min-h-[180px] w-full rounded-lg border border-soft-gray bg-pure-white p-4 text-base text-carbon-core focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forge-red"
         />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="ats" className="section-label">
-          Which ATS does this company use? (optional)
-        </label>
-        <select
-          id="ats"
-          value={atsVendor}
-          onChange={(e) => setAtsVendor(e.target.value as AtsVendor)}
-          className="min-h-12 w-full rounded-lg border border-soft-gray bg-pure-white px-3 text-base text-carbon-core focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forge-red"
-        >
-          {ATS_VENDORS.map((v) => (
-            <option key={v} value={v}>
-              {v}
-            </option>
-          ))}
-        </select>
       </div>
 
       {error && (

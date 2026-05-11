@@ -39,25 +39,14 @@ export interface TailoredOutput {
   interviewPrep: InterviewPrep;
 }
 
-export type AtsVendor =
-  | "Workday"
-  | "Greenhouse"
-  | "Lever"
-  | "iCIMS"
-  | "Taleo"
-  | "SmartRecruiters"
-  | "Don't know";
-
 export interface IntakeData {
   resume: string;
   jd: string;
-  atsVendor?: AtsVendor;
 }
 
 export interface SessionState {
   resume: string;
   jd: string;
-  atsVendor?: AtsVendor;
   diagnosis?: Diagnosis;
   questions?: QuestionsResponse;
   answers: Record<string, string>;

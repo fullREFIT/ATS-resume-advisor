@@ -3,7 +3,6 @@
 import { EMPTY_SESSION, type SessionState } from "./types";
 
 const KEY = "ai-resume-advisor-v1";
-const BYOK_KEY = "ai-resume-advisor-byok";
 
 function isBrowser() {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
@@ -44,33 +43,6 @@ export function clearSession() {
   if (!isBrowser()) return;
   try {
     window.localStorage.removeItem(KEY);
-  } catch {
-    /* ignore */
-  }
-}
-
-export function loadByokKey(): string | null {
-  if (!isBrowser()) return null;
-  try {
-    return window.sessionStorage.getItem(BYOK_KEY);
-  } catch {
-    return null;
-  }
-}
-
-export function saveByokKey(key: string) {
-  if (!isBrowser()) return;
-  try {
-    window.sessionStorage.setItem(BYOK_KEY, key);
-  } catch {
-    /* ignore */
-  }
-}
-
-export function clearByokKey() {
-  if (!isBrowser()) return;
-  try {
-    window.sessionStorage.removeItem(BYOK_KEY);
   } catch {
     /* ignore */
   }

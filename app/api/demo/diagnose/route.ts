@@ -13,7 +13,7 @@ export async function POST(req: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { error: "Server is not configured. Try BYOK or come back later." },
+      { error: "Server is not configured. Come back later." },
       { status: 500 },
     );
   }
@@ -22,15 +22,14 @@ export async function POST(req: Request) {
   if (!quota.allowed) {
     return NextResponse.json(
       {
-        error:
-          "Daily limit reached for this IP. Come back tomorrow or use Bring Your Own API Key.",
+        error: "Daily limit reached for this IP. Come back tomorrow.",
         rateLimit: quota,
       },
       { status: 429 },
     );
   }
 
-  let body: { resume?: string; jd?: string; atsVendor?: string };
+  let body: { resume?: string; jd?: string };
   try {
     body = await req.json();
   } catch {
@@ -39,7 +38,6 @@ export async function POST(req: Request) {
 
   const resume = (body.resume ?? "").slice(0, MAX_INPUT_CHARS).trim();
   const jd = (body.jd ?? "").slice(0, MAX_INPUT_CHARS).trim();
-  const atsVendor = (body.atsVendor ?? "").slice(0, 50).trim();
 
   if (resume.length < 50 || jd.length < 50) {
     return NextResponse.json(
@@ -59,11 +57,7 @@ ${resume}
 Job description:
 """
 ${jd}
-"""${
-    atsVendor && atsVendor !== "Don't know"
-      ? `\n\nTarget ATS: ${atsVendor}. Adjust weighting accordingly.`
-      : ""
-  }
+"""
 
 Diagnose the gap. Return STRICT JSON only matching the schema in the system instructions.`;
 
