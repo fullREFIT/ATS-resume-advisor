@@ -19,6 +19,18 @@ export interface RunOutputFlowArgs {
 
 const MAX_GUARD_RETRIES = 1;
 
+function flattenBullets(output: TailoredOutput): { text: string; company: string; idx: number }[] {
+  const out: { text: string; company: string; idx: number }[] = [];
+  let i = 0;
+  for (const role of output.experience ?? []) {
+    for (const b of role.bullets ?? []) {
+      out.push({ text: b.rewritten, company: role.company, idx: i });
+      i += 1;
+    }
+  }
+  return out;
+}
+
 function buildUserPrompt(
   args: RunOutputFlowArgs,
   flaggedFeedback: { index: number; reason: string }[] = [],
@@ -50,7 +62,7 @@ Intake answers:
 ${intakeBlock}
 """${feedback}
 
-Produce the tailored output JSON.`;
+Produce the tailored output JSON per the schema. Preserve every job from the resume as its own experience entry with company, title, dates, bullets.`;
 }
 
 export async function runOutputFlow(
@@ -74,6 +86,7 @@ export async function runOutputFlow(
     }
     output = parsed;
 
+    const flat = flattenBullets(parsed);
     const guardText = await callClaude({
       apiKey: args.apiKey,
       task: "fabrication_guard",
@@ -90,10 +103,8 @@ ${args.intakeAnswers
   .join("\n\n")}
 """
 
-Proposed tailored bullets:
-${parsed.tailoredBullets
-  .map((b, i) => `Bullet ${i}: ${b.rewritten}`)
-  .join("\n")}
+Proposed tailored bullets (numbered, grouped by company):
+${flat.map((f) => `Bullet ${f.idx} [${f.company}]: ${f.text}`).join("\n")}
 
 Return STRICT JSON only.`,
     });
@@ -106,7 +117,6 @@ Return STRICT JSON only.`,
     attempt += 1;
   }
 
-  // Exhausted retries — return last output but flag as ungated.
   if (!output) throw new Error("No output produced.");
   return { output, guarded: false, attempts: attempt };
 }

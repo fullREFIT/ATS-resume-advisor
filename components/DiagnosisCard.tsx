@@ -1,6 +1,45 @@
 import type { Diagnosis } from "@/lib/types";
 import { VerdictBadge, verdictAccentClass } from "@/components/VerdictBadge";
 
+function ScoreRow({
+  label,
+  score,
+  note,
+}: {
+  label: string;
+  score: number;
+  note: string;
+}) {
+  const tone =
+    score >= 75
+      ? "bg-forge-red"
+      : score >= 50
+        ? "bg-forge-gold"
+        : "bg-echo";
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="font-mono text-xs uppercase tracking-[0.08em] text-carbon-core">
+          {label}
+        </span>
+        <span className="font-mono text-sm font-bold text-carbon-core">
+          {score}/100
+        </span>
+      </div>
+      <div
+        className="h-1.5 w-full overflow-hidden rounded-full bg-soft-gray"
+        aria-hidden
+      >
+        <div
+          className={`h-full ${tone} transition-all`}
+          style={{ width: `${Math.max(0, Math.min(100, score))}%` }}
+        />
+      </div>
+      <p className="text-xs leading-relaxed text-echo">{note}</p>
+    </div>
+  );
+}
+
 export function DiagnosisCard({ diagnosis }: { diagnosis: Diagnosis }) {
   const parsingHasIssues =
     diagnosis.atsParsingFlags.length > 0 &&
@@ -8,6 +47,8 @@ export function DiagnosisCard({ diagnosis }: { diagnosis: Diagnosis }) {
       diagnosis.atsParsingFlags.length === 1 &&
       /none/i.test(diagnosis.atsParsingFlags[0])
     );
+
+  const sb = diagnosis.scoreBreakdown;
 
   return (
     <div className="flex flex-col gap-4">
@@ -28,6 +69,34 @@ export function DiagnosisCard({ diagnosis }: { diagnosis: Diagnosis }) {
           {diagnosis.verdictReasoning}
         </p>
       </section>
+
+      {sb && (
+        <section className="card-surface">
+          <p className="section-label mb-3">Why this score</p>
+          <div className="flex flex-col gap-4">
+            <ScoreRow
+              label="Keyword match"
+              score={sb.keywordMatch.score}
+              note={sb.keywordMatch.note}
+            />
+            <ScoreRow
+              label="Experience relevance"
+              score={sb.experienceRelevance.score}
+              note={sb.experienceRelevance.note}
+            />
+            <ScoreRow
+              label="Trajectory fit"
+              score={sb.trajectoryFit.score}
+              note={sb.trajectoryFit.note}
+            />
+            <ScoreRow
+              label="ATS parsing"
+              score={sb.atsParsing.score}
+              note={sb.atsParsing.note}
+            />
+          </div>
+        </section>
+      )}
 
       {parsingHasIssues && (
         <section className="card-surface border-l-[3px] border-l-forge-gold">

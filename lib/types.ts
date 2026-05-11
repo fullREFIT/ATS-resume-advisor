@@ -1,9 +1,22 @@
 export type Verdict = "GO" | "FIX_FIRST" | "PASS";
 
+export interface ScoreBreakdownComponent {
+  score: number;
+  note: string;
+}
+
+export interface ScoreBreakdown {
+  keywordMatch: ScoreBreakdownComponent;
+  experienceRelevance: ScoreBreakdownComponent;
+  trajectoryFit: ScoreBreakdownComponent;
+  atsParsing: ScoreBreakdownComponent;
+}
+
 export interface Diagnosis {
   matchScore: number;
   verdict: Verdict;
   verdictReasoning: string;
+  scoreBreakdown: ScoreBreakdown;
   topMatches: string[];
   criticalGaps: string[];
   atsParsingFlags: string[];
@@ -26,6 +39,22 @@ export interface TailoredBullet {
   rewritten: string;
 }
 
+export interface ExperienceEntry {
+  company: string;
+  title: string;
+  dates: string;
+  location?: string;
+  bullets: TailoredBullet[];
+}
+
+export interface ContactInfo {
+  name: string;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  location?: string;
+}
+
 export interface InterviewPrep {
   likelyQuestions: string[];
   starStoriesToPrep: string[];
@@ -33,15 +62,13 @@ export interface InterviewPrep {
 }
 
 export interface TailoredOutput {
+  contact: ContactInfo;
   summary: string;
-  tailoredBullets: TailoredBullet[];
+  experience: ExperienceEntry[];
+  skills: string[];
   keywordsIntegrated: string[];
+  keywordsMissed: string[];
   interviewPrep: InterviewPrep;
-}
-
-export interface IntakeData {
-  resume: string;
-  jd: string;
 }
 
 export interface SessionState {

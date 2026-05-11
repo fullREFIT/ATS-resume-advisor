@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { CopyButton } from "@/components/CopyButton";
 import { InfoBlock } from "@/components/ui/InfoBlock";
 import { InterviewPrep } from "@/components/InterviewPrep";
-import { TailoredBullets } from "@/components/TailoredBullets";
+import { TailoredExperience } from "@/components/TailoredBullets";
 import { clearSession, loadSession } from "@/lib/storage";
 import type { SessionState, TailoredOutput } from "@/lib/types";
 
@@ -34,6 +34,15 @@ export function ResultPageClient() {
     router.push("/");
   }
 
+  const contactLine = [
+    tailored.contact.location,
+    tailored.contact.phone,
+    tailored.contact.email,
+    tailored.contact.linkedin,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <>
       <div className="card-layer-1 flex flex-col gap-2">
@@ -47,6 +56,16 @@ export function ResultPageClient() {
         </p>
       </div>
 
+      <section className="card-surface flex flex-col gap-1">
+        <p className="section-label mb-1">Contact</p>
+        <p className="text-base font-semibold text-carbon-core">
+          {tailored.contact.name}
+        </p>
+        {contactLine && (
+          <p className="text-sm text-echo">{contactLine}</p>
+        )}
+      </section>
+
       <section className="card-surface flex flex-col gap-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="section-label">Professional summary</p>
@@ -58,13 +77,22 @@ export function ResultPageClient() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <p className="section-label">Tailored bullets</p>
-        <TailoredBullets bullets={tailored.tailoredBullets} />
+        <p className="section-label">Tailored experience</p>
+        <TailoredExperience experience={tailored.experience} />
       </section>
+
+      {tailored.skills?.length > 0 && (
+        <section className="card-surface">
+          <p className="section-label mb-2">Skills</p>
+          <p className="text-sm leading-relaxed text-carbon-core">
+            {tailored.skills.join(" · ")}
+          </p>
+        </section>
+      )}
 
       {tailored.keywordsIntegrated.length > 0 && (
         <section className="card-surface">
-          <p className="section-label mb-2">Keywords integrated</p>
+          <p className="section-label mb-2">JD keywords integrated</p>
           <div className="flex flex-wrap gap-2">
             {tailored.keywordsIntegrated.map((k, i) => (
               <span
@@ -75,6 +103,30 @@ export function ResultPageClient() {
               </span>
             ))}
           </div>
+        </section>
+      )}
+
+      {tailored.keywordsMissed?.length > 0 && (
+        <section className="card-surface border-l-[3px] border-l-forge-gold">
+          <p className="section-label mb-2 text-forge-dark">
+            JD keywords NOT integrated (no supporting evidence)
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {tailored.keywordsMissed.map((k, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center rounded-full border border-soft-gray bg-pure-white px-3 py-1 font-mono text-xs uppercase tracking-[0.06em] text-echo"
+              >
+                {k}
+              </span>
+            ))}
+          </div>
+          <p className="mt-2 text-xs leading-relaxed text-echo">
+            These were in the JD but your resume + intake answers didn&apos;t
+            support them. Stuffing them anyway would trigger the
+            claimed-vs-demonstrated mismatch check. Add evidence and rerun if
+            this gap matters.
+          </p>
         </section>
       )}
 
@@ -91,10 +143,7 @@ export function ResultPageClient() {
       </InfoBlock>
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <DownloadDocxButton
-          tailored={tailored}
-          resume={session.resume}
-        />
+        <DownloadDocxButton tailored={tailored} />
         <Button
           variant="secondary"
           onClick={onStartOver}
@@ -107,13 +156,7 @@ export function ResultPageClient() {
   );
 }
 
-function DownloadDocxButton({
-  tailored,
-  resume,
-}: {
-  tailored: TailoredOutput;
-  resume: string;
-}) {
+function DownloadDocxButton({ tailored }: { tailored: TailoredOutput }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -121,17 +164,12 @@ function DownloadDocxButton({
     setBusy(true);
     setErr(null);
     try {
-      const { buildResumeDocx, suggestFileName } = await import(
-        "@/lib/generate-docx"
-      );
-      const { blob, fileName } = await buildResumeDocx({
-        tailored,
-        originalResume: resume,
-      });
+      const { buildResumeDocx } = await import("@/lib/generate-docx");
+      const { blob, fileName } = await buildResumeDocx({ tailored });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName ?? suggestFileName(resume);
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
