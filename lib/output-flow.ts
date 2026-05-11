@@ -17,7 +17,7 @@ export interface RunOutputFlowArgs {
   intakeAnswers: { question: string; answer: string }[];
 }
 
-const MAX_GUARD_RETRIES = 2;
+const MAX_GUARD_RETRIES = 1;
 
 function buildUserPrompt(
   args: RunOutputFlowArgs,
